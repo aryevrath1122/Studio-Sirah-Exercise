@@ -5,46 +5,56 @@ using UnityEngine;
 
 public class QuestManager : MonoBehaviour
 {
-    private List<Quest> activeQuests = new List<Quest>();
-
-    public void InitialiseQuest(string description, Func<PlayerData, bool> successCondition,
-                                Action onSuccess, Func<PlayerData, bool> failureCondition = null,
-                                Action onFailure = null)
+    public class Quest
     {
-        Quest newQuest = new Quest(description, successCondition, onSuccess, failureCondition, onFailure);
-        activeQuests.Add(newQuest);
+        public string Description { get; private set; }
+        public Func<bool> SuccessCondition { get; private set; }
+        public Func<bool> FailureCondition { get; private set; }
+        public Action OnSuccess { get; private set; }
+        public Action OnFailure { get; private set; }
 
-        // displays the start of the quest in the connsole log
-        Debug.Log($"Quest started: {description}");
-
-        // starts to check for the status of the quest 
-        StartCoroutine(CheckQuestStatus(newQuest));
-    }
-
-    private IEnumerator CheckQuestStatus(Quest quest)
-    {
-        while (true)
+        public Quest(string description, Func<bool> successCondition, Action onSuccess, Func<bool> failureCondition = null, Action onFailure = null)
         {
-            yield return null;
-
-            if (quest.successCondition(PlayerDataInstance()))
-            {
-                Debug.Log($"Quest succeeded: {quest.description}");
-                quest.onSuccess?.Invoke();
-                yield break;
-            }
-
-            if (quest.failureCondition != null && quest.failureCondition(PlayerDataInstance()))
-            {
-                Debug.Log($"Quest failed: {quest.description}");
-                quest.onFailure?.Invoke();
-                yield break;
-            }
+            Description = description;
+            SuccessCondition = successCondition;
+            FailureCondition = failureCondition;
+            OnSuccess = onSuccess;
+            OnFailure = onFailure;
         }
     }
 
-    private PlayerData PlayerDataInstance()
+    private List<Quest> activeQuests = new List<Quest>();
+
+    public void InitialiseQuest(string description, Func<bool> successCondition, Action onSuccess, Func<bool> failureCondition = null, Action onFailure = null)
     {
-        return new PlayerData(); // references the players instance
+        var quest = new Quest(description, successCondition, onSuccess, failureCondition, onFailure);
+        activeQuests.Add(quest);
+
+        Debug.Log($"Quest Added: {description}");
+        StartCoroutine(TrackQuest(quest));
+    }
+
+    private IEnumerator TrackQuest(Quest quest)
+    {
+        while (true)
+        {
+            if (quest.SuccessCondition())
+            {
+                Debug.Log($"Quest Succeeded: {quest.Description}");
+                quest.OnSuccess?.Invoke();
+                activeQuests.Remove(quest);
+                yield break;
+            }
+
+            if (quest.FailureCondition != null && quest.FailureCondition())
+            {
+                Debug.Log($"Quest Failed: {quest.Description}");
+                quest.OnFailure?.Invoke();
+                activeQuests.Remove(quest);
+                yield break;
+            }
+
+            yield return null;
+        }
     }
 }

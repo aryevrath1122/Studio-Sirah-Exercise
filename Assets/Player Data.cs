@@ -1,27 +1,7 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerData
+public class PlayerData : MonoBehaviour
 {
-    public int resourcesGathered;
-    public int enemiesKilled;
-
-    public PlayerData()
-    {
-        resourcesGathered = 0;
-        enemiesKilled = 0;
-    }
-
-    //simulates gathering resources or killing enemies
-    public void GatherResources(int amount)
-    {
-        resourcesGathered += amount;
-    }
-
-    public void KillEnemy()
-    {
-        enemiesKilled++;
-    }
+    public int CollectedResources { get; set; }
+    public int EnemiesDefeated { get; set; }
 }
-

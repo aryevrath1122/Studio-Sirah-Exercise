@@ -5,37 +5,42 @@ public class TestQuest : MonoBehaviour
     private PlayerData playerData;
     private QuestManager questManager;
 
-    void Start()
+    private void Start()
     {
-        playerData = new PlayerData();
-        questManager = FindObjectOfType<QuestManager>(); 
+        playerData = gameObject.AddComponent<PlayerData>();
+        questManager = gameObject.AddComponent<QuestManager>();
 
-        // Initialize two quests
-        questManager.InitialiseQuest("Gather 10 Resources",
-            successCondition: (data) => data.resourcesGathered >= 10,
-            onSuccess: () => Debug.Log("Quest Success! Gathered 10 Resources"),
-            failureCondition: (data) => data.resourcesGathered < 0,  // represents the failure condition
-            onFailure: () => Debug.Log("Quest Failed!"));
+        // Test quest 1: Collect 5 resources
+        questManager.InitialiseQuest(
+            "Collect 5 resources",
+            () => playerData.CollectedResources >= 5,
+            () => Debug.Log("You collected all resources!"),
+            () => playerData.CollectedResources > 10,
+            () => Debug.Log("You collected too many resources and failed!")
+        );
 
-        questManager.InitialiseQuest("Kill 5 Enemies",
-            successCondition: (data) => data.enemiesKilled >= 5,
-            onSuccess: () => Debug.Log("Quest Success! Killed 5 Enemies"));
+        // Test quest 2: Defeat 3 enemies
+        questManager.InitialiseQuest(
+            "Defeat 3 enemies",
+            () => playerData.EnemiesDefeated >= 3,
+            () => Debug.Log("You defeated all enemies!")
+        );
     }
 
-    // Test method to simulate actions
-    void Update()
+    private void Update()
     {
-        // method that applies g to gather resources and k to kill enemies
-        if (Input.GetKeyDown(KeyCode.G)) 
+        // Simulate collecting resources
+        if (Input.GetKeyDown(KeyCode.G))
         {
-            playerData.GatherResources(1);
-            Debug.Log($"Resources gathered: {playerData.resourcesGathered}");
+            playerData.CollectedResources++;
+            Debug.Log($"Resources collected: {playerData.CollectedResources}");
         }
 
-        if (Input.GetKeyDown(KeyCode.K)) 
+        // Simulate defeating enemies
+        if (Input.GetKeyDown(KeyCode.K))
         {
-            playerData.KillEnemy();
-            Debug.Log($"Enemies killed: {playerData.enemiesKilled}");
+            playerData.EnemiesDefeated++;
+            Debug.Log($"Enemies defeated: {playerData.EnemiesDefeated}");
         }
     }
 }
